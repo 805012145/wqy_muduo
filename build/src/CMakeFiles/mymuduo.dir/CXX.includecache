@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/wqy/project/wqy_muduo/src/logger.cpp
+logger.h
+/home/wqy/project/wqy_muduo/src/logger.h
+timestamp.h
+/home/wqy/project/wqy_muduo/src/timestamp.h
+
+/home/wqy/project/wqy_muduo/src/logger.h
+string
+-
+iostream
+-
+noncopyable.h
+/home/wqy/project/wqy_muduo/src/noncopyable.h
+
+/home/wqy/project/wqy_muduo/src/noncopyable.h
+
+/home/wqy/project/wqy_muduo/src/timestamp.cpp
+timestamp.h
+/home/wqy/project/wqy_muduo/src/timestamp.h
+cstdio
+-
+iostream
+-
+time.h
+-
+
+/home/wqy/project/wqy_muduo/src/timestamp.h
+bits/stdint-intn.h
+-
+string
+-
+
