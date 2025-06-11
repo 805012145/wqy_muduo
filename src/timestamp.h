@@ -2,6 +2,8 @@
 
 #include <bits/stdint-intn.h>
 #include <string>
+
+// 时间类
 namespace mymuduo {
     namespace base {
         class Timestamp {
