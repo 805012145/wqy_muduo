@@ -9,7 +9,7 @@ namespace mymuduo {
     namespace base {
         class EventLoop;
 
-        class Channel : noncopyable{
+        class Channel : public std::enable_shared_from_this<Channel>, private noncopyable {
         public:
             typedef std::function<void()> EventCallback;
             typedef std::function<void(Timestamp)> ReadEventCallback;
