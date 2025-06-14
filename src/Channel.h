@@ -9,12 +9,12 @@ namespace mymuduo {
     namespace base {
         class EventLoop;
 
-        class Channel : public std::enable_shared_from_this<Channel>, private noncopyable {
+        class Channel : noncopyable {
         public:
             typedef std::function<void()> EventCallback;
             typedef std::function<void(Timestamp)> ReadEventCallback;
 
-            explicit Channel(std::shared_ptr<EventLoop> loop, int fd);
+            explicit Channel(EventLoop* loop, int fd);
             ~Channel();
             
             // fd被通知后，处理事件
@@ -64,7 +64,7 @@ namespace mymuduo {
             int index() { return index_; }
             void set_index(int idx) { index_ = idx; }
 
-            std::shared_ptr<EventLoop> ownerLoop() { return loop_; }
+            EventLoop* ownerLoop() { return loop_; }
             void remove();
         private:
 
@@ -76,7 +76,7 @@ namespace mymuduo {
             static const int kWriteEvent;
             
             const int fd_;
-            std::shared_ptr<EventLoop> loop_;
+            EventLoop* loop_;
             int events_;    // 感兴趣的事件
             int revents_;   // 具体发生的事件
             int index_;     

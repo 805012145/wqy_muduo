@@ -1,3 +1,4 @@
+#pragma once
 #include "EventLoop.h"
 #include "noncopyable.h"
 #include "timestamp.h"
@@ -9,21 +10,21 @@ namespace mymuduo {
         class Channel;
         class Poller : noncopyable {
         public:
-            using ChannelList = std::vector<std::shared_ptr<Channel>>;
-            Poller(std::shared_ptr<EventLoop> loop);
+            using ChannelList = std::vector<Channel*>;
+            Poller(EventLoop* loop);
             virtual ~Poller();
-            // 给所有IO复用保留同意的接口
-            virtual Timestamp poll(int timeoutMs, std::shared_ptr<ChannelList> activateChannels) = 0;
-            virtual void updateChannel(std::shared_ptr<Channel> channel) = 0;
-            virtual void removeChannel(std::shared_ptr<Channel> channel) = 0;
+            // 给所有IO复用保留统一的接口
+            virtual Timestamp poll(int timeoutMs, ChannelList* activateChannels) = 0;
+            virtual void updateChannel(Channel* channel) = 0;
+            virtual void removeChannel(Channel* channel) = 0;
 
             // 判断参数channel是否在当前poller中
-            bool hasChannel(std::shared_ptr<Channel> channel) const;
+            bool hasChannel(Channel* channel) const;
 
             // EventLoop可以通过该接口获取默认的IO复用的具体实现
             static std::shared_ptr<Poller> newDefaultPoller(std::shared_ptr<EventLoop> loop);
         protected:
-            using ChannelMap = std::unordered_map<int, std::shared_ptr<Channel>>;
+            using ChannelMap = std::unordered_map<int, Channel*>;
             ChannelMap channels_;
         private:
             std::shared_ptr<EventLoop> ownerLoop_; // poller所属的事件循环

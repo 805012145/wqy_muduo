@@ -10,7 +10,7 @@ const int Channel::kNoneEvent = 0x00;
 const int Channel::kReadEvent = EPOLLIN | EPOLLPRI;
 const int Channel::kWriteEvent= EPOLLOUT | EPOLLPRI;
 
-Channel::Channel(std::shared_ptr<EventLoop> loop, int fd)
+Channel::Channel(EventLoop* loop, int fd)
  : loop_(loop), 
    fd_(fd), 
    events_(0), 
@@ -69,11 +69,9 @@ void Channel::tie(const std::shared_ptr<void>& obj) {
 // 当改变channel所表示的fd的events事件后，update负责在poller里更改fd相应的epoll_ctl
 void Channel::update() {
     // 创建一个 shared_ptr 指向当前对象
-    // std::shared_ptr<Channel> self = shared_from_this();
-    // loop_->updateChannel(self);
+    // loop_->updateChannel(this);
 }
 
 void Channel::remove() {
-    // std::shared_ptr<Channel> self = shared_from_this();
     // loop_->removeChannel(this);
 }
