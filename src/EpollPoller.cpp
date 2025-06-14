@@ -6,6 +6,7 @@
 
 #include <asm-generic/errno-base.h>
 #include <cerrno>
+#include <strings.h>
 #include <sys/epoll.h>
 #include <unistd.h>
 
@@ -96,6 +97,7 @@ void EpollPoller::fillActivateChannels(int numEvents, ChannelList* activateChann
 // 调用epoll_ctl 更新channel
 void EpollPoller::update(int operation, Channel* channel) {
     struct epoll_event event;
+    bzero(&event, sizeof event);
     int fd = channel->fd();
     event.events = channel->events();
     event.data.fd = fd;
