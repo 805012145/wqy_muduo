@@ -1,5 +1,5 @@
 #pragma once
-#include "EventLoop.h"
+#include "Channel.h"
 #include "noncopyable.h"
 #include "timestamp.h"
 #include <memory>
@@ -8,6 +8,7 @@
 namespace mymuduo {
     namespace base {
         class Channel;
+        class EventLoop;
         class Poller : noncopyable {
         public:
             using ChannelList = std::vector<Channel*>;
