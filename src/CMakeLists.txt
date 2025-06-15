@@ -1,6 +1,6 @@
 
 # 自动收集当前目录所有.cpp文件  
-file(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*)  
+file(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)  
  
 # 生成动态库（可通过SHARED/STATIC切换库类型）  
 add_library(mymuduo SHARED ${SRC_FILES})  
