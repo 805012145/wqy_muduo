@@ -1,6 +1,9 @@
 #pragma once
 
+#include <bits/types/struct_iovec.h>
 #include <cstddef>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <vector>
 #include <string>
 namespace mymuduo {
@@ -59,6 +62,43 @@ namespace mymuduo {
                 if (writableBytes() < len) {
                     makeSpace(len); // 确保有足够的可写空间
                 }
+            }
+
+            void append(const char* data, size_t len) {
+                ensureWritableBytes(len); // 确保有足够的可写空间
+                std::copy(data, data + len, beginWrite()); // 将数据复制到缓冲区
+                writerIndex_ += len; // 更新写指针
+            }
+
+            char *beginWrite() {
+                return begin() + writerIndex_; // 返回下一个可写位置
+            }
+
+            const char *beginWrite() const {
+                return begin() + writerIndex_; // 返回下一个可写位置
+            }
+
+            // 从fd上读取数据
+            ssize_t readFd(int fd, int* saveErrno) {
+                char extraBuffer[65536]; // 栈上的内存空间
+                struct iovec vec[2];
+                const size_t writable = writableBytes();
+                vec[0].iov_base = beginWrite(); // 第一个缓冲区指向
+                vec[0].iov_len = writable; // 第一个缓冲区的长度
+                vec[1].iov_base = extraBuffer; // 第二个缓冲区指向
+                vec[1].iov_len = sizeof(extraBuffer); // 第二个缓冲区的
+
+                const int iovcnt = (writable < sizeof(extraBuffer)) ? 2 : 1; // 确定使用的缓冲区数量
+                const ssize_t n = ::recv(fd, &vec, iovcnt, 0); // 从fd读取数据
+                if (n < 0) {
+                    *saveErrno = errno; // 保存错误码
+                } else if (n <= writable) {
+                    writerIndex_ += n; // 更新写指针
+                } else {
+                    writerIndex_ = buffer_.size(); // 更新写指针到缓冲区末尾
+                    append(extraBuffer, n - writable); // 将额外数据添加到缓冲区
+                }
+                return n; // 返回读取的字节数
             }
 
         private:
