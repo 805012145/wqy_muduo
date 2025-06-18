@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <vector>
 #include <string>
+#include <unistd.h>
 namespace mymuduo {
     namespace base {
         class Buffer {
@@ -76,6 +77,14 @@ namespace mymuduo {
 
             const char *beginWrite() const {
                 return begin() + writerIndex_; // 返回下一个可写位置
+            }
+
+            ssize_t writeFd(int fd, int* saveErrno) {
+                ssize_t n = ::write(fd, peek(), readableBytes()); // 写入数据到fd
+                if (n < 0) {
+                    *saveErrno = errno; // 保存错误码
+                }
+                return n; // 返回写入的字节数
             }
 
             // 从fd上读取数据

@@ -30,10 +30,7 @@ namespace mymuduo {
             bool connected() const {return state_ == kConnected;}
             bool disconnected() const {return state_ == kDisconnected;}
             
-            void send(const void *message, int len); // 发送数据
-            void shutdown(); // 关闭连接
-
-            void setConnectionCallback(const ConnectionCallback &cb) { connections_ = cb; } // 设置连接回调
+            void setConnectionCallback(const ConnectionCallback &cb) { connectionCallback_ = cb; } // 设置连接回调
             void setMessageCallback(const MessageCallback &cb) { messageCallback_ = cb; }
             void setWriteCompleteCallback(const WriteCompleteCallback &cb) { writeCompleteCallback_ = cb; } // 设置写完成回调
             void setCloseCallback(const CloseCallback &cb) { closeCallback_ = cb; }
@@ -45,14 +42,6 @@ namespace mymuduo {
             void conneectEstableished(); // 连接建立
             void conneectDestroyed(); // 连接销毁
 
-            void handleRead(Timestamp receiveTime); // 处理读取事件
-            void handleWrite(); // 处理写事件
-            void handleClose(); // 处理关闭事件
-            void handleError(); // 处理错误事件
-            void setState(int state) { state_ = state; } // 设置连接状态
-
-            void sendInLoop(const void *message, int len); // 在事件循环中发送数据
-            void shutdownInLoop(); // 在事件循环中关闭连接
         private:
             enum StateE {
                 kDisconnected, // 断开连接
@@ -60,6 +49,20 @@ namespace mymuduo {
                 kConnected,    // 已连接
                 kDisconnecting // 正在断开连接
             };
+            void setState(StateE state) { state_ = state; } // 设置连接状态
+
+            void handleRead(Timestamp receiveTime); // 处理读取事件
+            void handleWrite(); // 处理写事件
+            void handleClose(); // 处理关闭事件
+            void handleError(); // 处理错误事件
+
+            void send(const std::string &buf); // 发送数据
+
+            void sendInLoop(const void *message, int len); // 在事件循环中发送数据
+            void shutdownInLoop(); // 在事件循环中关闭连接
+            void shutdown(); // 关闭连接
+
+
             EventLoop *loop_; //管理该连接的事件循环
             std::string name_; //连接的名称
             std::atomic_int state_; //连接状态
@@ -71,7 +74,7 @@ namespace mymuduo {
             const InetAddress localAddr_; //本地地址
             const InetAddress peerAddr_; //本地地址
 
-            ConnectionCallback connections_; //连接回调函数
+            ConnectionCallback connectionCallback_; //连接回调函数
             MessageCallback messageCallback_; //消息回调函数
             WriteCompleteCallback writeCompleteCallback_; //写完成回调函数
             CloseCallback closeCallback_; //关闭回调函数
