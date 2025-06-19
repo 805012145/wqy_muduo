@@ -1,10 +1,17 @@
 #include "TcpServer.h"
 #include "Acceptor.h"
+#include "Callbacks.h"
 #include "EventLoop.h"
 #include "EventLoopThreadPool.h"
+#include "InetAddress.h"
 #include "logger.h"
 #include "EventLoopThread.h"
+#include "TcpConnection.h"
+#include <cstdio>
 #include <functional>
+#include <netinet/in.h>
+#include <strings.h>
+#include <sys/socket.h>
 
 
 namespace mymuduo {
@@ -29,7 +36,12 @@ namespace mymuduo {
                  std::placeholders::_1, std::placeholders::_2));
         }
         TcpServer::~TcpServer() {
-
+            for (auto &item : connections_) {
+                TcpConnectionPtr conn(item.second);
+                item.second.reset(); // 释放TcpConnection对象
+                conn->getLoop()->runInLoop(std::bind(&TcpConnection::conneectDestroyed, conn));
+                LOG_INFO("TcpServer::~TcpServer - TcpConnection[%s] is destroyed \n", conn->name().c_str());
+            }
         }
 
 
@@ -48,13 +60,41 @@ namespace mymuduo {
         void TcpServer::newConnection(int sockFd, const InetAddress &peerAddr) {
             EventLoop *ioLoop = threadPool_->getNextLoop();
             char buf[64];
-            
+            snprintf(buf, sizeof(buf), "-%s#%d", ipPort_.c_str(), nextConnId_);
+            ++nextConnId_;
+            std::string connName = name_ + buf;
+            LOG_INFO("TcpServer::newConnection [%s] - new connection [%s] from %s \n",
+                name_.c_str(),  connName.c_str(), peerAddr.toIpPort().c_str());
+
+            sockaddr_in local;
+            bzero(&local, sizeof(local));
+            socklen_t addrLen = sizeof(local);
+            if(::getsockname(sockFd, (sockaddr*)&local, &addrLen) < 0) {
+                LOG_ERROR("TcpServer::newConnection - getsockname error");
+            } 
+            InetAddress localAddr(local);
+
+            // 根据连接成功的fd, 创建TcpConnection对象
+            TcpConnectionPtr conn(new TcpConnection(ioLoop, 
+                                                connName, 
+                                                sockFd, 
+                                                localAddr,
+                                                peerAddr));
+            connections_[connName] = conn;
+            conn->setConnectionCallback(connectionCallback_);
+            conn->setMessageCallback(messageCallback_);
+            conn->setCloseCallback(std::bind(&TcpServer::removeConnection, this, std::placeholders::_1));
+            conn->setWriteCompleteCallback(writeCompleteCallback_);
+            ioLoop->runInLoop(std::bind(&TcpConnection::conneectEstableished, conn));
         }
         void TcpServer::removeConnection(const TcpConnectionPtr &conn) {
-
+            loop_->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
         }
         void TcpServer::removeConnectionInLoop(const TcpConnectionPtr &conn) {
-
+            LOG_INFO("TcpServer::removeConnectionInLoop [%s] - connection %s \n", name_.c_str(), conn->name().c_str());
+            connections_.erase(conn->name());
+            EventLoop *ioLoop = conn->getLoop();
+            ioLoop->queueInLoop(std::bind(&TcpConnection::conneectDestroyed, conn));
         }
     }
 }

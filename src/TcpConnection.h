@@ -39,8 +39,12 @@ namespace mymuduo {
                 highWaterMark_ = highWaterMark; 
             }
 
+            void send(const std::string &buf); // 发送数据
+
             void conneectEstableished(); // 连接建立
             void conneectDestroyed(); // 连接销毁
+
+            void shutdown(); // 关闭连接
 
         private:
             enum StateE {
@@ -56,11 +60,9 @@ namespace mymuduo {
             void handleClose(); // 处理关闭事件
             void handleError(); // 处理错误事件
 
-            void send(const std::string &buf); // 发送数据
 
             void sendInLoop(const void *message, int len); // 在事件循环中发送数据
             void shutdownInLoop(); // 在事件循环中关闭连接
-            void shutdown(); // 关闭连接
 
 
             EventLoop *loop_; //管理该连接的事件循环

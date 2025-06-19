@@ -54,14 +54,29 @@ namespace mymuduo {
         }
 
         void TcpConnection::shutdown() {
-
+            if (state_ == kConnected) {
+                setState(kDisconnecting);
+                loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this)); // 在事件循环中执行断开连接
+            }
         }
 
         void TcpConnection::conneectEstableished() {
+            setState(kConnected);
+            channel_->tie(shared_from_this());
+            channel_->enableReading(); // 启用读事件
 
+            // 执行连接建立的回调
+            connectionCallback_(shared_from_this());
+            LOG_INFO("TcpConnection::conneectEstableished() - fd=%d, name=%s",
+                     channel_->fd(), name_.c_str());
         }
         void TcpConnection::conneectDestroyed() {
-            
+            if (state_ == kConnected) {
+                setState(kDisconnected);
+                channel_->disableAll();
+                connectionCallback_(shared_from_this()); // 执行连接关闭的回调
+            }
+            channel_->remove(); // 从事件循环中移除channel
         }
 
         void TcpConnection::handleRead(Timestamp receiveTime) {
@@ -169,7 +184,10 @@ namespace mymuduo {
             }
         }
         void TcpConnection::shutdownInLoop() {
-
+            if (!channel_->isWriting()) {
+                // 说明outputBuffer_中没有数据需要发送
+                socket_->shutdownWrite(); // 关闭写端
+            }
         }
     }
 }
