@@ -4,4 +4,4 @@ cd build
 rm -rf *
 # 运行 cmake 和 make
 cmake ..
-make
+make -j$(nproc)

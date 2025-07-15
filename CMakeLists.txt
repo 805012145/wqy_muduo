@@ -6,6 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -fPIC -Wno-implicit-function-declaration 
 
 # c++14 语言标准
 set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_C_STANDARD 14)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -45,7 +46,17 @@ FetchContent_Declare(
         -DCURL_DISABLE_GOPHER=ON
 )
 
-FetchContent_MakeAvailable(abseil curl)
+FetchContent_Declare(
+    libevent
+    GIT_REPOSITORY git@github.com:libevent/libevent.git
+    GIT_TAG        release-2.1.12-stable  # 指定稳定版本
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/libevent
+)
+
+set(EVENT__DISABLE_TESTS ON)
+set(EVENT__DISABLE_SAMPLES ON)
+
+FetchContent_MakeAvailable(abseil curl libevent)
 
 add_subdirectory(muduo)
 add_subdirectory(my_test)
